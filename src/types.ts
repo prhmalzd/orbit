@@ -87,6 +87,50 @@ export interface OrbitExport {
   settings: AppSettings;
 }
 
+export interface SyncConfig {
+  id: 'sync';
+  workspaceId: string;
+  deviceId: string;
+  deviceName: string;
+  encryptionKey: string;
+  signingPrivateKey: JsonWebKey;
+  signingPublicKey: JsonWebKey;
+  lastRemoteVersion: number;
+  lastSyncedAt?: string;
+  lastSyncedData?: OrbitExport;
+  dirtySince?: string;
+}
+
+export type SyncEntity = 'projects' | 'entries' | 'links' | 'sessions';
+
+export interface SyncConflict {
+  id: string;
+  entity: SyncEntity;
+  recordId: string;
+  localRecord: unknown;
+  remoteRecord: unknown;
+  createdAt: string;
+}
+
+export interface PairingBundle {
+  version: 1;
+  workspaceId: string;
+  encryptionKey: string;
+  signingPrivateKey: JsonWebKey;
+  signingPublicKey: JsonWebKey;
+}
+
+export interface EncryptedSyncPayload {
+  iv: string;
+  ciphertext: string;
+}
+
+export interface RemoteSyncBundle extends EncryptedSyncPayload {
+  version: number;
+  updatedAt: string;
+  deviceId: string;
+}
+
 export interface ClassificationResult {
   cleanText: string;
   projectId?: string;

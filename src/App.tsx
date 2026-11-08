@@ -8,6 +8,7 @@ import { ProjectList } from './components/ProjectList';
 import { ProjectPanel } from './components/ProjectPanel';
 import { RandomProjectDialog } from './components/RandomProjectDialog';
 import { SettingsDialog } from './components/SettingsDialog';
+import { SyncControl } from './components/SyncDialog';
 import { useOrbitStore } from './store';
 
 export default function App() {
@@ -47,6 +48,7 @@ export default function App() {
         </nav>
         <div className="header-actions">
           {!online && <span className="offline-badge"><CloudOff size={13} /> Offline</span>}
+          <SyncControl />
           <button className="pick-button" onClick={() => setShowRandom(true)}><Dices size={16} /> Pick for me</button>
           <button className="icon-button" onClick={() => setShowSettings(true)} aria-label="Settings"><Settings2 size={18} /></button>
         </div>

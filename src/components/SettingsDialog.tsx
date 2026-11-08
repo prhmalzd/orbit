@@ -4,6 +4,7 @@ import { db } from '../db';
 import { collectExport, downloadExport, importWorkspace, validateImport } from '../lib/portable';
 import type { OrbitSnapshot } from '../types';
 import { useOrbitStore } from '../store';
+import { markSyncDirty } from '../lib/sync';
 
 interface Props { open: boolean; onClose: () => void }
 
@@ -26,6 +27,7 @@ export function SettingsDialog({ open, onClose }: Props) {
       const data = validateImport(JSON.parse(await file.text()));
       if (mode === 'replace' && !window.confirm('Replace this workspace? Orbit will make a safety snapshot first.')) return;
       await importWorkspace(data, mode);
+      await markSyncDirty();
       await refresh();
       notify(`Workspace ${mode === 'merge' ? 'merged' : 'restored'} successfully.`);
       onClose();

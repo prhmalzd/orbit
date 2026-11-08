@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { db, defaultSettings } from './db';
 import { classifyCapture } from './lib/classifier';
 import { newId } from './lib/domain';
+import { markSyncDirty } from './lib/sync';
 import type { AppSettings, ClassificationResult, Entry, EntryState, EntryType, Project, ProjectLink, TimeSession } from './types';
 
 export type ViewMode = 'constellation' | 'list' | 'inbox';
@@ -96,7 +97,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
       createdAt: now, updatedAt: now
     };
     set((state) => ({ projects: [project, ...state.projects] }));
-    try { await db.projects.add(project); } catch (error) {
+    try { await db.projects.add(project); await markSyncDirty(); } catch (error) {
       set((state) => ({ projects: state.projects.filter((item) => item.id !== project.id) }));
       throw error;
     }
@@ -107,7 +108,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
     const previous = get().projects;
     const updatedAt = new Date().toISOString();
     set({ projects: previous.map((project) => project.id === id ? { ...project, ...changes, updatedAt } : project) });
-    try { await db.projects.update(id, { ...changes, updatedAt }); } catch (error) { set({ projects: previous }); throw error; }
+    try { await db.projects.update(id, { ...changes, updatedAt }); await markSyncDirty(); } catch (error) { set({ projects: previous }); throw error; }
   },
 
   moveProject: async (id, x, y) => {
@@ -125,6 +126,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
     });
     if (get().selectedProjectId === id) set({ selectedProjectId: undefined });
     await get().refresh();
+    await markSyncDirty();
   },
 
   capture: async (text) => {
@@ -144,6 +146,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
         }
       };
       await db.entries.put(entry);
+      await markSyncDirty();
       set((state) => ({ entries: state.entries.map((item) => item.id === entry.id ? entry : item) }));
       get().notify(entry.projectId ? 'Captured and placed in its orbit.' : 'Captured in Inbox for a quick decision.');
       return entry;
@@ -160,6 +163,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
       classification: { method: 'manual', confidence: 1, originalText: text }, createdAt: now, updatedAt: now
     };
     await db.entries.add(entry);
+    await markSyncDirty();
     set((state) => ({ entries: [entry, ...state.entries] }));
     return entry;
   },
@@ -167,6 +171,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
   updateEntry: async (id, changes) => {
     const updatedAt = new Date().toISOString();
     await db.entries.update(id, { ...changes, updatedAt });
+    await markSyncDirty();
     set((state) => ({ entries: state.entries.map((entry) => entry.id === id ? { ...entry, ...changes, updatedAt } : entry) }));
   },
 
@@ -192,6 +197,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
 
   deleteEntry: async (id) => {
     await db.entries.delete(id);
+    await markSyncDirty();
     set((state) => ({ entries: state.entries.filter((entry) => entry.id !== id) }));
   },
 
@@ -201,11 +207,13 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
       (link.sourceProjectId === targetProjectId && link.targetProjectId === sourceProjectId))) return;
     const link = { id: newId('link'), sourceProjectId, targetProjectId, label, createdAt: new Date().toISOString() };
     await db.links.add(link);
+    await markSyncDirty();
     set((state) => ({ links: [...state.links, link] }));
   },
 
   removeLink: async (id) => {
     await db.links.delete(id);
+    await markSyncDirty();
     set((state) => ({ links: state.links.filter((link) => link.id !== id) }));
   },
 
@@ -223,6 +231,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
     const endedAt = new Date().toISOString();
     const durationMinutes = Math.max(1, Math.round((new Date(endedAt).getTime() - new Date(running.startedAt).getTime()) / 60000));
     await db.sessions.update(running.id, { endedAt, durationMinutes });
+    await markSyncDirty();
     set((state) => ({ sessions: state.sessions.map((session) => session.id === running.id ? { ...session, endedAt, durationMinutes } : session) }));
   },
 
@@ -233,6 +242,7 @@ export const useOrbitStore = create<OrbitState>((set, get) => ({
       durationMinutes: minutes, origin: 'manual'
     };
     await db.sessions.add(session);
+    await markSyncDirty();
     set((state) => ({ sessions: [...state.sessions, session] }));
   },
 
