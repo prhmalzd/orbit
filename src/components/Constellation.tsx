@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, type Edge, type Node, type NodeChange } from '@xyflow/react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ReactFlow, Background, BackgroundVariant, Controls, MiniMap, useNodesState, type Edge, type Node, type NodeChange } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { Orbit, Plus } from 'lucide-react';
 import { useOrbitStore } from '../store';
@@ -22,13 +22,16 @@ export function Constellation({ onNewProject }: Props) {
     entries.some((entry) => entry.projectId === project.id && entry.text.toLowerCase().includes(search))
   )), [projects, entries, search]);
 
-  const nodes: Node<ProjectNodeData>[] = useMemo(() => visibleProjects.map((project) => ({
+  const projectNodes: Node<ProjectNodeData>[] = useMemo(() => visibleProjects.map((project) => ({
     id: project.id,
     type: 'project',
     position: project.position,
     data: { project, entries },
     style: { width: 310 }
   })), [visibleProjects, entries]);
+
+  const [nodes, setNodes, applyNodeChanges] = useNodesState(projectNodes);
+  useEffect(() => setNodes(projectNodes), [projectNodes, setNodes]);
 
   const edges: Edge[] = useMemo(() => links.filter((link) =>
     visibleProjects.some((project) => project.id === link.sourceProjectId) && visibleProjects.some((project) => project.id === link.targetProjectId)
@@ -39,12 +42,13 @@ export function Constellation({ onNewProject }: Props) {
   })), [links, visibleProjects]);
 
   const onNodesChange = useCallback((changes: NodeChange<Node<ProjectNodeData>>[]) => {
+    applyNodeChanges(changes);
     for (const change of changes) {
       if (change.type === 'position' && change.dragging === false && change.position) {
         void moveProject(change.id, change.position.x, change.position.y);
       }
     }
-  }, [moveProject]);
+  }, [applyNodeChanges, moveProject]);
 
   if (!projects.filter((project) => project.status === 'active').length) {
     return (
@@ -77,6 +81,9 @@ export function Constellation({ onNewProject }: Props) {
         <MiniMap
           position="bottom-right"
           nodeColor={(node) => (node.data as unknown as ProjectNodeData).project.color}
+          nodeStrokeColor={(node) => (node.data as unknown as ProjectNodeData).project.color}
+          nodeStrokeWidth={3}
+          nodeBorderRadius={12}
           maskColor="rgba(10,9,8,.72)"
           pannable
           zoomable

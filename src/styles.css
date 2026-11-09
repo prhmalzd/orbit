@@ -107,6 +107,15 @@ button { cursor: pointer; }
 .capture-submit { width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 10px; background: var(--accent); color: #25150e; }
 .capture-submit:disabled { background: #3a3530; color: #6f665f; }
 .capture-bar.is-thinking .capture-spark { animation: pulse 1s ease-in-out infinite; }
+.capture-suggestions { position: absolute; left: 38px; right: 7px; bottom: calc(100% + 9px); padding: 7px; border: 1px solid #51463e; border-radius: 14px; background: rgba(29,26,23,.98); backdrop-filter: blur(18px); box-shadow: 0 18px 55px rgba(0,0,0,.55); }
+.capture-suggestions__heading { display: flex; align-items: center; gap: 6px; padding: 5px 7px 8px; color: var(--accent); font: 500 9px ui-monospace,monospace; text-transform: uppercase; letter-spacing: .08em; }
+.capture-suggestions__heading small { margin-left: auto; color: #776e66; font-size: 7px; letter-spacing: 0; text-transform: none; }
+.capture-suggestions > button { width: 100%; display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 9px; border: 0; border-radius: 9px; background: transparent; color: #cfc5bd; padding: 8px; text-align: left; }
+.capture-suggestions > button:hover, .capture-suggestions > button.is-active { background: #2a2521; color: var(--text); }
+.capture-suggestions > button > i { width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+.capture-suggestions > button > span { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.capture-suggestions > button b { font-size: 11px; }.capture-suggestions > button small { color: #837a72; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.capture-suggestions > button em { color: #8f8379; font: 400 8px ui-monospace,monospace; font-style: normal; }
 @keyframes pulse { 50% { opacity: .4; transform: scale(.88); } }
 
 .list-view, .inbox-view { min-height: 100%; padding: 36px max(28px, calc((100vw - 1180px)/2)) 130px; background: linear-gradient(180deg,#151310,#11100f); }
@@ -198,6 +207,8 @@ button { cursor: pointer; }
 .color-field { border: 0; padding: 0; margin: 0; }.color-field legend { color: #afa59c; font-size: 11px; margin-bottom: 12px; }.color-field div { display: flex; gap: 7px; }.color-field button { width: 22px; height: 22px; border: 2px solid transparent; border-radius: 50%; }.color-field button.is-active { outline: 2px solid #fff; outline-offset: 2px; }
 
 .inbox-stack { display: grid; gap: 10px; }
+.inbox-explainer { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 11px; margin: -8px 0 22px; padding: 13px 15px; border: 1px solid #3e493f; border-radius: 12px; background: #171d18; color: var(--green); }
+.inbox-explainer div { color: var(--text); }.inbox-explainer b { font-size: 11px; }.inbox-explainer p { margin: 3px 0 0; color: #98a49a; font-size: 10px; line-height: 1.45; }
 .inbox-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 20px; align-items: center; border: 1px solid var(--line); border-radius: 14px; background: #1a1815; padding: 16px; }
 .inbox-item__copy p { margin: 7px 0 5px; font-size: 13px; }.inbox-item__copy small { color: #756d66; font: 400 9px 'DM Mono'; }
 .entry-kind { color: var(--accent); font: 500 9px 'DM Mono'; text-transform: uppercase; letter-spacing: .1em; }
@@ -248,11 +259,12 @@ button { cursor: pointer; }
   .app-header { padding: 0 15px; }.brand { margin-right: auto; }.primary-nav, .pick-button { display: none; }.sync-status-button span { display: none; }.sync-status-button { width: 36px; height: 36px; padding: 0; justify-content: center; }
   .workspace-toolbar { padding: 0 14px; gap: 8px; }.workspace-title { display: none; }.search-field { width: 100%; }.new-project-button { padding: 10px; }.new-project-button { font-size: 0; }.new-project-button svg { margin: 0; }
   .capture-bar { bottom: 70px; width: calc(100vw - 20px); grid-template-columns: auto 1fr auto; border-radius: 14px; }.capture-hint { display: none; }
+  .capture-suggestions { left: 7px; }.capture-suggestions__heading small, .capture-suggestions > button em { display: none; }
   .mobile-nav { display: grid; grid-template-columns: repeat(5,1fr); align-items: center; position: fixed; z-index: 13; bottom: 0; left: 0; right: 0; height: 61px; border-top: 1px solid var(--line); background: rgba(20,18,16,.97); backdrop-filter: blur(16px); }
   .mobile-nav button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; border: 0; background: none; color: #756d66; font-size: 8px; }.mobile-nav button.is-active { color: var(--accent); }.mobile-nav .mobile-add { width: 42px; height: 42px; justify-self: center; border-radius: 50%; background: var(--accent); color: #25150e; transform: translateY(-8px); }.mobile-nav button i { position: absolute; top: -4px; right: calc(50% - 17px); width: 14px; height: 14px; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: #21140e; font-size: 8px; font-style: normal; }
   .react-flow__minimap { display: none; }.react-flow__controls { bottom: 115px !important; }
   .project-node { width: 280px; }.project-panel { width: 100%; border-left: 0; }.mobile-back { display: grid; }.project-panel__scroll { padding: 22px 17px 120px; }
   .list-view, .inbox-view { padding: 25px 14px 150px; }.section-heading { align-items: flex-start; }.section-heading h1 { font-size: 28px; }.section-heading > span { margin-top: 8px; }.project-grid { grid-template-columns: 1fr; }
-  .inbox-item { grid-template-columns: 1fr; gap: 12px; }.inbox-item__controls { flex-wrap: wrap; }.inbox-item select:last-of-type { flex: 1; }
+  .inbox-item { grid-template-columns: 1fr; gap: 12px; }.inbox-item__controls { flex-wrap: wrap; }.inbox-item select:last-of-type { flex: 1; }.inbox-explainer { grid-template-columns: auto 1fr; }.inbox-explainer > svg:last-child { display: none; }
   .modal-backdrop { padding: 10px; }.modal { padding: 24px 18px; max-height: calc(100vh - 20px); }.form-row, .settings-grid { grid-template-columns: 1fr; }.import-mode { grid-template-columns: 1fr; }.pair-choice { grid-template-columns: 1fr; gap: 8px; }.pair-choice > div { height: 18px; }.pair-choice > div::before { width: 100%; height: 1px; }.sync-summary { grid-template-columns: auto 1fr; }.sync-summary .primary-button { grid-column: 1 / -1; }.pairing-key-view { grid-template-columns: 1fr; }.qr-wrap { width: max-content; margin: auto; }
 }

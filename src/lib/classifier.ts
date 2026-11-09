@@ -31,7 +31,9 @@ function similarity(a: string, b: string) {
 
 export function classifyCapture(text: string, projects: Project[]): ClassificationResult {
   const hashtags = [...text.matchAll(/#([\p{L}\p{N}_-]+)/gu)].map((match) => match[1]);
+  const mentions = [...text.matchAll(/@([\p{L}\p{N}_-]+)/gu)].map((match) => match[1]);
   const loweredTags = hashtags.map((tag) => tag.toLocaleLowerCase());
+  const explicitProjectTokens = [...hashtags, ...mentions].map((token) => token.toLocaleLowerCase());
   let type: EntryType = 'update';
   let priority: EntryPriority = loweredTags.includes('must') ? 'must' : 'normal';
   let method: ClassificationResult['method'] = 'local-semantic';
@@ -51,7 +53,7 @@ export function classifyCapture(text: string, projects: Project[]): Classificati
 
   const projectMatches = projects.map((project) => {
     const names = [project.title, ...project.aliases, ...project.labels];
-    const tagMatch = loweredTags.find((tag) => names.some((name) => normalize(name) === normalize(tag)));
+    const tagMatch = explicitProjectTokens.find((tag) => names.some((name) => normalize(name) === normalize(tag)));
     if (tagMatch) return { id: project.id, score: 1, explicit: true };
     const corpus = `${project.title} ${project.description} ${project.aliases.join(' ')} ${project.labels.join(' ')}`;
     const normalizedText = ` ${normalize(text)} `;
@@ -71,7 +73,7 @@ export function classifyCapture(text: string, projects: Project[]): Classificati
   const labels = hashtags.filter((tag) => !reserved.has(tag.toLocaleLowerCase()) && !projectNames.has(normalize(tag)));
 
   return {
-    cleanText: text.replace(/\s*#[\p{L}\p{N}_-]+/gu, '').trim() || text.trim(),
+    cleanText: text.replace(/\s*[#@][\p{L}\p{N}_-]+/gu, '').trim() || text.trim(),
     projectId,
     suggestedProjectId,
     confidence: top?.explicit ? 1 : confidence,

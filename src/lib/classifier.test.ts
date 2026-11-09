@@ -32,5 +32,12 @@ describe('classifyCapture', () => {
     const result = classifyCapture('Remember the blue one', projects);
     expect(result.projectId).toBeUndefined();
   });
+
+  it('treats an @ project mention as an explicit assignment', () => {
+    const result = classifyCapture('Write the next chapter @Write-a-Book #do', projects);
+    expect(result.projectId).toBe('book');
+    expect(result.cleanText).toBe('Write the next chapter');
+    expect(result.confidence).toBe(1);
+  });
 });
 
