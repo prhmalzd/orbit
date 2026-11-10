@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { CircleDot, CloudOff, Dices, Inbox as InboxIcon, LayoutGrid, List, Orbit as OrbitIcon, Plus, Search, Settings2, Sparkles } from 'lucide-react';
 import { CaptureBar } from './components/CaptureBar';
-import { Constellation } from './components/Constellation';
 import { Inbox } from './components/Inbox';
 import { NewProjectDialog } from './components/NewProjectDialog';
 import { ProjectList } from './components/ProjectList';
@@ -10,6 +9,8 @@ import { RandomProjectDialog } from './components/RandomProjectDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { SyncControl } from './components/SyncDialog';
 import { useOrbitStore } from './store';
+
+const Constellation = lazy(() => import('./components/Constellation').then((module) => ({ default: module.Constellation })));
 
 export default function App() {
   const initialize = useOrbitStore((state) => state.initialize);
@@ -61,7 +62,7 @@ export default function App() {
       </div>
 
       <main className="workspace">
-        {view === 'constellation' && <Constellation onNewProject={() => setShowNewProject(true)} />}
+        {view === 'constellation' && <Suspense fallback={<div className="workspace-loading"><span>Drawing your constellation…</span></div>}><Constellation onNewProject={() => setShowNewProject(true)} /></Suspense>}
         {view === 'list' && <ProjectList />}
         {view === 'inbox' && <Inbox />}
       </main>

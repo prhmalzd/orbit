@@ -1,4 +1,4 @@
-import type { EncryptedSyncPayload, OrbitExport, PairingBundle, SyncConfig } from '../types';
+import type { EncryptedSyncPayload, OrbitExport, PairingBundle, PairingTransferPayload, SyncConfig } from '../types';
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -41,7 +41,7 @@ export function importPairingKey(pairingKey: string, deviceName: string): SyncCo
   if (bundle.version !== 1 || !bundle.workspaceId || !bundle.encryptionKey || !bundle.signingPrivateKey || !bundle.signingPublicKey) {
     throw new Error('That pairing key is incomplete or unsupported.');
   }
-  return configFromBundle(bundle, deviceName);
+  return configFromBundle(bundle, deviceName, false);
 }
 
 export function exportPairingKey(config: SyncConfig) {
@@ -55,12 +55,43 @@ export function exportPairingKey(config: SyncConfig) {
   return bytesToBase64(encoder.encode(JSON.stringify(bundle)));
 }
 
-function configFromBundle(bundle: PairingBundle, deviceName: string): SyncConfig {
+function configFromBundle(bundle: PairingBundle, deviceName: string, markDirty = true): SyncConfig {
   return {
     id: 'sync', workspaceId: bundle.workspaceId, deviceId: crypto.randomUUID(), deviceName,
     encryptionKey: bundle.encryptionKey, signingPrivateKey: bundle.signingPrivateKey,
-    signingPublicKey: bundle.signingPublicKey, lastRemoteVersion: 0, dirtySince: new Date().toISOString()
+    signingPublicKey: bundle.signingPublicKey, lastRemoteVersion: 0,
+    ...(markDirty ? { dirtySince: new Date().toISOString() } : {})
   };
+}
+
+async function pairingTransferKey(code: string, salt: Uint8Array, usages: KeyUsage[]) {
+  const material = await crypto.subtle.importKey('raw', encoder.encode(code), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: salt as BufferSource, iterations: 180_000 },
+    material,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    usages
+  );
+}
+
+export async function sealPairingKey(pairingKey: string, code: string): Promise<PairingTransferPayload> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await pairingTransferKey(code, salt, ['encrypt']);
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoder.encode(pairingKey));
+  return { version: 1, salt: bytesToBase64(salt), iv: bytesToBase64(iv), ciphertext: bytesToBase64(new Uint8Array(encrypted)) };
+}
+
+export async function openPairingKey(payload: PairingTransferPayload, code: string) {
+  try {
+    if (payload.version !== 1) throw new Error('Unsupported transfer.');
+    const key = await pairingTransferKey(code, base64ToBytes(payload.salt), ['decrypt']);
+    const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: base64ToBytes(payload.iv) }, key, base64ToBytes(payload.ciphertext));
+    return decoder.decode(decrypted);
+  } catch {
+    throw new Error('That pairing code is invalid or expired.');
+  }
 }
 
 export async function encryptWorkspace(data: OrbitExport, keyValue: string): Promise<EncryptedSyncPayload> {

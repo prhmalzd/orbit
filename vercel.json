@@ -6,6 +6,9 @@
   "functions": {
     "api/sync.ts": {
       "maxDuration": 10
+    },
+    "api/pair.ts": {
+      "maxDuration": 10
     }
   },
   "headers": [

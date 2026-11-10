@@ -125,6 +125,11 @@ export interface EncryptedSyncPayload {
   ciphertext: string;
 }
 
+export interface PairingTransferPayload extends EncryptedSyncPayload {
+  version: 1;
+  salt: string;
+}
+
 export interface RemoteSyncBundle extends EncryptedSyncPayload {
   version: number;
   updatedAt: string;

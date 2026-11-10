@@ -44,6 +44,8 @@ To enable it on Vercel:
 1. Import this Git repository into Vercel as a Vite project.
 2. In the Vercel project, open **Storage**, create a **Blob** store, choose **Private**, and connect it to the project.
 3. Redeploy the project so the deployment receives the Blob store ID and OIDC credentials. Older token-based stores using `BLOB_READ_WRITE_TOKEN` remain supported.
+
+To connect another device, open **Pair devices** on the already-connected device and create a six-digit code. Enter it on the new device or scan the QR code. The encrypted transfer expires after two minutes, can be claimed only once, and the new device performs its first sync immediately.
 4. Open Orbit on the first device, select **Pair devices**, and create a device group.
 5. Copy or scan the pairing key on the second device, then press **Sync now**.
 
