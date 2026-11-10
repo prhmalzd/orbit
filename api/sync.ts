@@ -44,9 +44,6 @@ async function sha256(value: string) {
 
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed.' });
-  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.VERCEL_OIDC_TOKEN) {
-    return response.status(503).json({ error: 'Encrypted sync is not connected to a Vercel Blob store yet.' });
-  }
 
   const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
   const { action, workspaceId, timestamp, signature } = body ?? {};

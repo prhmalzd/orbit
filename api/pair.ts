@@ -18,9 +18,6 @@ async function readPairing(pathname: string) {
 export default async function handler(request: VercelRequest, response: VercelResponse) {
   response.setHeader('cache-control', 'no-store');
   if (request.method !== 'POST') return response.status(405).json({ error: 'Method not allowed.' });
-  if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.VERCEL_OIDC_TOKEN) {
-    return response.status(503).json({ error: 'Pairing is not connected to Vercel Blob yet.' });
-  }
 
   const body = typeof request.body === 'string' ? JSON.parse(request.body) : request.body;
   const action = body?.action;
